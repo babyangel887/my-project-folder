@@ -86,3 +86,13 @@ I asked the AI builder (OpenCode) why it recommended Vite + React instead of Nex
 
 **Decision:** Keep Vite + React as the locked framework, since nothing in the current PRD requires Next.js's capabilities, and switching now would add complexity without a corresponding need
 
+## Design Refinement Note
+I asked the AI builder (OpenCode) to create a visual design preview (`design.html`) showing the app's colors, typography, a styled button, and a sample input field. The initial version used a warm neutrals + calm green palette.
+
+I requested one specific refinement: change the color palette to feel **bright and energetic** instead, while keeping good contrast and readability. OpenCode updated the palette to a vibrant indigo primary with pink and yellow accents on a bright blue-white background, keeping dark ink text for contrast.
+
+I also asked for a follow-up tweak: the `--muted` (secondary text) color still looked like a leftover gray from the old neutral palette. OpenCode changed it from gray (`#475569`) to a bolder indigo tone (`#4338CA`), keeping it dark enough to stay readable as secondary text while matching the new energetic direction.
+
+**Final palette:** bg `#F0F4FF`, card `#ffffff`, ink `#0F172A`, muted `#4338CA`, accent (primary) `#4F46E5`, accent2 `#EC4899`, energy `#FACC15`, danger `#DC2626`.
+
+
