@@ -47,6 +47,8 @@ Folder contents:
 - [ ] Create user stories + wireframes
 - [ ] Choose tech stack (web / mobile)
 - [ ] Refine into investor-ready one-pager
-
+code
+## Built with
+this project is built and connected to GitHUb using OpenCode AI.
 ---
 *Generated 2026-09-19 from product description docx as initial saved version.*
