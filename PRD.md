@@ -1,0 +1,82 @@
+# Product Requirements Document (PRD)
+
+## User
+Students and early-career professionals who want practical help managing misunderstandings, disagreements, and emotionally difficult conversations. Secondary users include educators, team leaders, and community organizers who want to strengthen empathy, active listening, and fair communication.
+
+## Problem
+When users face emotionally difficult conversations, they may want to respond respectfully but struggle to pause, understand other perspectives, and choose language that does not escalate the situation. General communication advice is often difficult to apply in the moment. Users need short, practical opportunities to learn, practice, and receive carefully bounded guidance for real-life interactions.
+
+## Main Journey
+When users open the app, they receive a brief reflection or communication challenge. They can choose a short lesson, practice through a role-play scenario, or request guidance about a current conversation. The AI coach helps them identify emotions, consider different perspectives, and compare respectful response options while making clear that its suggestions may be imperfect. Optional reminders and progress updates support continued practice. For situations involving immediate danger, abuse, self-harm, or serious mental-health concerns, the app does not try to handle the situation alone. Instead, it directs users toward trusted people and appropriate professional or emergency support.
+
+## Short Product Summary
+This app helps students and early-career professionals handle difficult conversations with greater empathy and confidence. Users can learn communication skills, practice through role-play, or receive limited guidance for a real situation. The app encourages reflection, active listening, and respectful responses while directing users to trusted people and professional support when safety or serious mental-health concerns are involved.
+
+## Key Features
+- **Short Lessons:** Bite-sized communication tips users can read in a few minutes, covering topics like active listening, tone, and de-escalation.
+- **Role-Play Practice:** Simulated conversations where users respond to a scenario and get feedback on tone, empathy, and clarity.
+- **Real Situation Guidance:** Users can describe a current disagreement or difficult conversation and receive suggestions for how to approach it respectfully.
+- **Progress Tracking:** A gentle, encouraging summary of the user's activity over time (see Progress Tracking section below).
+- **Reminders:** Optional gentle nudges (e.g., "Practice a lesson today") to help users build a habit.
+- **Safety Redirection:** If a user's situation involves danger, abuse, self-harm, or serious mental health concerns, the app clearly redirects them to trusted people, professional help, or emergency services instead of attempting to handle it directly.
+
+## First-Time User Flow
+1. **Welcome screen:** Briefly explains what the app does and who it's for.
+2. **Quick check-in:** Asks the user why they're here today (e.g., "I want to learn," "I want to practice," "I have a real situation").
+3. **Guided first action:** Based on their answer, the app suggests a starting point — a short lesson if they want to learn, a role-play if they want practice, or the guidance tool if they have a real situation.
+4. **Safety notice (brief):** A short, one-time note letting users know the app is not a substitute for professional help in emergencies, with a link to resources if needed.
+
+## Returning User Flow
+1. **Straight to the home screen:** The user lands directly on the main screen with no re-explanation of the app and no check-in question — they already know how to navigate, so the app gets out of their way.
+2. **A warm, familiar greeting:** A short, consistent greeting appears on the home screen each time — not based on activity history, just a simple, friendly welcome back, for example: "Good to see you again. What would you like to work on today?"
+3. **Continue option, only when relevant:** If the user has an incomplete lesson (one where they started the optional mini-practice but didn't finish it), the app offers a one-tap "Continue" option on the home screen. If there's nothing incomplete, this option simply doesn't appear.
+4. **Open choice:** The user can freely choose any feature — lesson, role-play, real situation guidance, or progress — with no forced action or question.
+5. **Crisis handling applies the same as always:** If a returning user's input at any point suggests a crisis (see Crisis & Safety Handling), the app responds the same way regardless of whether the user is new or returning — safety handling is not a first-time-only feature.
+
+## AI Coach Tone
+The AI coach speaks like a friendly peer rather than a formal therapist or authority figure. It uses warm, everyday language, avoids clinical or judgmental phrasing, and encourages the user without being preachy. It acknowledges that conversations are hard and that mistakes are normal, while staying honest about the limits of its advice.
+
+## Role-Play Scenario Selection
+Users can choose a role-play scenario in one of two ways:
+- **Pick from a list:** A set of common situations.
+- **Describe their own:** Users can briefly describe a real or hypothetical situation, and the AI creates a role-play scenario based on it.
+
+### Starter Role-Play Scenarios
+1. **Disagreeing with a coworker or classmate** – responding respectfully when you see things differently.
+2. **Giving honest feedback to a friend or teammate** – being truthful without being harsh.
+3. **Responding to criticism or feedback about yourself** – staying calm and open instead of defensive.
+4. **Setting a boundary** – saying no or pushing back on a request without damaging the relationship.
+5. **Repairing a misunderstanding** – addressing a conversation that went wrong and reconnecting.
+6. **Speaking up in a group project** – voicing a concern or disagreement with group members without causing conflict.
+7. **Asking a professor or teacher for help or an extension** – communicating a struggle respectfully and clearly, without over-explaining or under-explaining.
+
+## Progress Tracking
+After each use, the app shows a short, encouraging reflection paired with a gentle sense of consistency, for example:
+- "You practiced staying calm during disagreement today. You're building a nice habit."
+- "You've explored a few different conversation styles this week — nice momentum."
+
+There are no exact streak numbers, scores, or "don't break your streak" warnings. If a user misses a day, the app does not mention it at all — it simply welcomes them back warmly, for example: "Welcome back — every conversation is a chance to practice."
+
+## Real Situation Guidance
+When a user describes a real situation they're facing, the AI coach responds in three simple steps:
+1. **Reflect back:** The AI briefly summarizes what it heard in one or two sentences, focusing on the *situation* rather than assuming the user's emotions (e.g., "It sounds like your teammate keeps interrupting you during meetings.").
+2. **Offer 2–3 respectful response options:** Instead of telling the user exactly what to say, the AI offers a few different ways to approach the conversation, each with a short label describing its tone (e.g., "A direct option," "A softer option," "A question-based option").
+3. **One-line reminder:** A brief, non-repetitive note that this is guidance, not a guarantee — something like, "You know this situation best; take what's useful and leave the rest."
+
+The AI does **not** ask multiple clarifying questions before responding. If something is unclear, it makes a reasonable assumption and says so directly in its response (e.g., "I'm assuming this is a coworker, not a manager — let me know if that's wrong.") rather than interrogating the user first.
+
+## Lesson Structure
+Each short lesson follows the same simple format:
+1. **Start with a question:** The lesson opens with a relatable question or scenario (e.g., "Have you ever said something in the heat of the moment that you regretted?").
+2. **Reveal the idea:** After the user reflects briefly (in their head, or with a one-tap response like "Yes" / "Sometimes"), the lesson introduces the communication concept as the "answer" to that relatable moment.
+3. **Short explanation + example:** A few sentences explaining the idea, with one before/after example.
+4. **Optional mini-practice:** A short prompt (like typing one sentence or picking from 2-3 options) that users can respond to if they want, but is not required to mark the lesson "complete."
+
+## Crisis & Safety Handling
+If a user's message suggests immediate danger, abuse, self-harm, suicidal thoughts, or a serious mental-health crisis, the app treats this as a full stop — not something to coach or role-play, but something to respond to with care and redirect immediately:
+1. **One warm, clear message:** Instead of multiple steps or questions, the app responds with a single message that acknowledges the seriousness kindly, without sounding like a script — for example: "This sounds really serious, and I want to make sure you get the right kind of help. You don't have to face this alone."
+2. **Resource card:** Right alongside that message, the app shows a simple, always-visible card with a crisis hotline, text line, or emergency number, so help is one glance away rather than something to search for.
+3. **No further coaching on that topic:** The app does not continue the conversation about the crisis itself (no follow-up questions, no "tell me more," no response options) — everything stays focused on connecting the user to real support.
+4. **Gentle re-entry, whenever they're ready:** The user can return to normal app features (lessons, role-play, etc.) at any time, and the app doesn't bring up the crisis moment again unless the user chooses to — it simply welcomes them back warmly.
+
+**Known challenge:** Reliably detecting a genuine crisis (versus a normal difficult conversation) is a hard problem and is not fully solved by this document — it will require careful, cautious implementation and testing rather than a simple keyword check.
