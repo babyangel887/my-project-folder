@@ -80,3 +80,9 @@ If a user's message suggests immediate danger, abuse, self-harm, suicidal though
 4. **Gentle re-entry, whenever they're ready:** The user can return to normal app features (lessons, role-play, etc.) at any time, and the app doesn't bring up the crisis moment again unless the user chooses to — it simply welcomes them back warmly.
 
 **Known challenge:** Reliably detecting a genuine crisis (versus a normal difficult conversation) is a hard problem and is not fully solved by this document — it will require careful, cautious implementation and testing rather than a simple keyword check.
+
+## Tool Decision: Framework
+I asked the AI builder (OpenCode) why it recommended Vite + React instead of Next.js for this project. It explained that the current locked scope (4 static routes, JSON content, progress stored in localStorage, no login, no database) doesn't need what Next.js is built for — server-side rendering, API routes, or real multi-device auth. Vite + React fits this MVP with less setup and a faster development loop, while keeping the option open to migrate to Next.js later if real user accounts, a shared database, or server-hidden API keys become necessary.
+
+**Decision:** Keep Vite + React as the locked framework, since nothing in the current PRD requires Next.js's capabilities, and switching now would add complexity without a corresponding need
+
