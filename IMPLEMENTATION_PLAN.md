@@ -9,6 +9,7 @@ Source: `PRD.md` — AI Communication Coach for students / early-career professi
 - **Authentication:** None — local first-time flag (`localStorage`)
 - **File storage:** Repo folder `content/` (JSON lessons/scenarios), no storage service
 - **AI:** Thin `ai/` orchestration layer in front of LLM API + `lib/safety.ts` gate on all AI inputs
+- **Note:** The app and database run locally for now (no hosting, no external database server).
 
 No `package.json` / `src/` yet — this is the target, not current state.
 
