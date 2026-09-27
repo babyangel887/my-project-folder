@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Communication Coach — Preview</title>
+<style>
+body{font-family:system-ui,Arial,sans-serif;background:#f6f5f1;margin:0;color:#222}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.tabs button{padding:8px 12px;border:1px solid #ccc;border-radius:20px;background:#fff;cursor:pointer}
+.tabs button.active{background:#222;color:#fff}
+.card{background:#fff;border:1px solid #e5e0d5;border-radius:12px;padding:16px;margin:12px 0}
+.muted{color:#666}.pill{display:inline-block;background:#eef;border-radius:20px;padding:2px 10px;margin:2px;font-size:13px}
+.btn{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+.safety{border:2px solid #c00;background:#fff5f5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.screen{display:none}.screen.active{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>AI Communication Coach — Visual Preview</h1>
+<p class="muted">Static mock from PRD.md — Vite + React target, no backend. Click tabs.</p>
+<div class="tabs">
+<button data-t="home" class="active">Home</button>
+<button data-t="first">First-time</button>
+<button data-t="learn">Learn</button>
+<button data-t="practice">Practice</button>
+<button data-t="reflect">Reflect</button>
+<button data-t="progress">Progress</button>
+<button data-t="safety">Safety</button>
+</div>
+
+<div id="home" class="screen active"><div class="card">
+<h2>Good to see you again. What would you like to work on today?</h2>
+<p><b>Today's reflection (1-3 min):</b> Someone misunderstood what you meant. What could you do before responding?</p>
+<p><span class="pill">Learn</span><span class="pill">Practice</span><span class="pill">Reflect</span><span class="pill">Progress</span></p>
+<button class="btn">Continue: Active listening (incomplete)</button>
+<p class="muted">Continue only shows if mini-practice incomplete, otherwise hidden.</p>
+</div></div>
+
+<div id="first" class="screen"><div class="card">
+<h2>Welcome</h2><p>Build practical skills for difficult conversations. For students + early-career pros.</p>
+<h3>Quick check-in — why here today?</h3>
+<p><button class="btn">I want to learn</button> <button class="btn">I want to practice</button> <button class="btn">I have a real situation</button></p>
+<p>→ Guided first action routes to lesson / role-play / guidance.</p>
+<p class="muted">One-time safety notice: not a substitute for professional help in emergencies. <a href="#">Resources</a></p>
+</div></div>
+
+<div id="learn" class="screen"><div class="card">
+<h2>Short Lesson: Pause before reacting</h2>
+<p><b>1. Question:</b> Have you ever said something in the heat of the moment that you regretted?</p>
+<p><button class="btn">Yes</button> <button class="btn">Sometimes</button></p>
+<p><b>2. Idea:</b> Pause + breathe = space to choose words.</p>
+<p><b>3. Example:</b> Before: "That's wrong!" After: "Can you help me understand what you meant?"</p>
+<p><b>4. Optional mini-practice:</b> Type one softer rewrite (not required to complete).</p>
+</div></div>
+
+<div id="practice" class="screen"><div class="card">
+<h2>Role-Play (simulated)</h2>
+<div class="grid">
+<div class="card">1. Disagreeing with coworker/classmate</div>
+<div class="card">2. Giving honest feedback</div>
+<div class="card">3. Responding to criticism</div>
+<div class="card">4. Setting a boundary</div>
+<div class="card">5. Repairing misunderstanding</div>
+<div class="card">6. Speaking up in group</div>
+<div class="card">7. Asking professor for help/extension</div>
+<div class="card">+ Describe your own → AI creates scenario</div>
+</div>
+<p class="muted">Chat labeled simulated, end/restart anytime. Feedback after: tone / empathy / clarity, no scores.</p>
+</div></div>
+
+<div id="reflect" class="screen"><div class="card">
+<h2>Real Situation Guidance — 3-part shape</h2>
+<p><b>You:</b> My teammate keeps interrupting me in meetings.</p>
+<p><b>1. Reflect back:</b> It sounds like your teammate keeps interrupting you during meetings. (I'm assuming coworker, not manager — let me know if wrong.)</p>
+<p><b>2. Options:</b><br>• A direct option: "Can I finish my point, then I want your take?"<br>• A softer option: "I get excited too — can we take turns?"<br>• A question-based option: "Can you help me understand what you meant?"</p>
+<p><b>3. Reminder:</b> You know this situation best; take what's useful and leave the rest.</p>
+</div></div>
+
+<div id="progress" class="screen"><div class="card">
+<h2>Gentle progress, no streaks/scores</h2>
+<p>"You practiced staying calm during disagreement today. You're building a nice habit."</p>
+<p>"Welcome back — every conversation is a chance to practice."</p>
+<p>Counts only: lessons 3 • role-plays 2 • reflections 1</p>
+<p><label><input type="checkbox" checked> Optional reminder: "Practice a lesson today"</label></p>
+</div></div>
+
+<div id="safety" class="screen"><div class="card safety">
+<h2>Safety redirect (full stop)</h2>
+<p>This sounds really serious, and I want to make sure you get the right kind of help. You don't have to face this alone.</p>
+<p><b>Resource card (always visible):</b> Crisis hotline • Text line • Emergency number</p>
+<p class="muted">No follow-ups, no coaching on that topic. Return to Learn/Practice anytime.</p>
+</div></div>
+
+</div>
+<script>
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(b.dataset.t).classList.add('active');
+});
+</script>
+</body>
+</html>
