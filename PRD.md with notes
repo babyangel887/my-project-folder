@@ -95,4 +95,12 @@ I also asked for a follow-up tweak: the `--muted` (secondary text) color still l
 
 **Final palette:** bg `#F0F4FF`, card `#ffffff`, ink `#0F172A`, muted `#4338CA`, accent (primary) `#4F46E5`, accent2 `#EC4899`, energy `#FACC15`, danger `#DC2626`.
 
+## Progress Update
+**Phase reached:** Phase 1 — App skeleton + navigation + coach tone scaffold (complete).
+
+The app currently runs locally as static HTML/CSS/JS files (since Node.js/npm isn't installed on this machine yet), mapping 1:1 to the planned Vite+React structure: `app/index.html` (navigation), `app/app.js` (hash router), `app/styles.css` (energetic palette from `design.html`), and `app/ai/prompt.js` (shared friendly-peer tone scaffold used by every view). All 5 sections (Home, Learn, Practice, Reflect, Progress) render and are navigable, and the "done when" criteria for Phase 1 (navigate to all sections, all AI output goes through one tone prompt) are met.
+
+**What's next:** Phase 2 — First-Time + Returning user flows (welcome screen, quick check-in, guided first action for new users; straight-to-home with no friction for returning users), as defined in `IMPLEMENTATION_PLAN.md`. Once Node.js is installed, this static skeleton can also be converted into a real Vite+React project (`package.json`, `src/`, `ai/prompt.ts`) without changing the structure already in place.
+
+
 
