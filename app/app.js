@@ -65,6 +65,30 @@ window.savePractice = function (id) {
   if (v) localStorage.setItem('coach_practice_' + id, v);
   completeLesson(id);
 };
+window.RG = { input: localStorage.getItem('coach_reflect_last') || '' };
+window.getGuidance = function () {
+  var el = document.getElementById('rgInput');
+  var v = el ? el.value.trim() : '';
+  if (!v) return;
+  window.RG.input = v;
+  localStorage.setItem('coach_reflect_last', v);
+  render();
+};
+function buildGuidance(text) {
+  var short = text.length > 140 ? text.slice(0, 140) + '…' : text;
+  var words = text.split(/\s+/).length;
+  var hasWho = /coworker|manager|friend|teammate|partner|professor|roommate|team|boss/i.test(text);
+  var assume = (!hasWho || words < 12) ? ' (I\'m assuming this is a coworker, not a manager — let me know if that\'s wrong.)' : '';
+  var disclaimers = [
+    'You know this situation best; take what\'s useful and leave the rest.',
+    'Use what fits — you decide what happens next.',
+    'Guidance, not a guarantee — pick what suits you.'
+  ];
+  var d = disclaimers[text.length % 3];
+  return '<div class="card"><p><b>1. Reflect back:</b> It sounds like ' + esc(short.charAt(0).toLowerCase() + short.slice(1)) + '.' + assume + '</p>'
+    + '<p><b>2. Options:</b><br>• A direct option: "I want to clear this up — can we talk for 5 minutes?"<br>• A softer option: "I might be misreading this — can you help me understand?"<br>• A question-based option: "What did you mean when that happened?"</p>'
+    + '<p class="muted"><b>3. Reminder:</b> ' + d + '</p></div>';
+}
 
 window.RP = { id: '', custom: '', msgs: [], ended: false };
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -203,7 +227,9 @@ var routes = {
     return param ? practiceChat(param) : practicePicker();
   },
   reflect: function () {
-    return '<div class="card"><h2>Reflect</h2><p>Real-situation guidance placeholder (Phase 5).</p><p class="muted">Tone scaffold active, ' + window.COACH_SYSTEM.length + ' chars.</p></div>';
+    var h = '<div class="card"><h2>Reflect — real situation guidance</h2><p>Describe a disagreement. No interrogation — you get a 3-part response.</p><p><textarea id="rgInput" placeholder="e.g. My teammate keeps interrupting me in meetings…" style="width:100%;padding:8px" rows="3">' + esc(window.RG.input) + '</textarea></p><p><button class="btn" onclick="getGuidance()">Get guidance</button></p><p class="muted">Tone scaffold active, ' + window.COACH_SYSTEM.length + ' chars.</p></div>';
+    if (window.RG.input) h += buildGuidance(window.RG.input);
+    return h;
   },
   progress: function () {
     return '<div class="card"><h2>Progress</h2><p>Gentle counts only, no streaks/scores (Phase 6).</p></div>';
