@@ -2,10 +2,13 @@ var LS_ONBOARDED = 'coach_onboarded';
 var LS_CHOICE = 'coach_checkin_choice';
 var LS_SAFETY = 'coach_safety_seen';
 var LS_INCOMPLETE = 'coach_incomplete_lesson';
+var LS_COMPLETED = 'coach_completed_lessons';
+var LS_REVEALED = 'coach_revealed_';
 
 function isOnboarded() { return localStorage.getItem(LS_ONBOARDED) === '1'; }
 function getChoice() { return localStorage.getItem(LS_CHOICE) || ''; }
 function hasIncomplete() { return localStorage.getItem(LS_INCOMPLETE) === '1'; }
+function getCompleted() { try { return JSON.parse(localStorage.getItem(LS_COMPLETED) || '[]'); } catch (e) { return []; } }
 
 window.startOnboarding = function () { location.hash = '#welcome'; };
 window.choose = function (c) {
@@ -36,6 +39,61 @@ function suggestionFor(choice) {
   return { route: 'reflect', label: 'the guidance tool for your real situation' };
 }
 
+function getLesson(id) {
+  for (var i = 0; i < window.LESSONS.length; i++) {
+    if (window.LESSONS[i].id === id) return window.LESSONS[i];
+  }
+  return null;
+}
+window.openLesson = function (id) { location.hash = '#learn/' + id; };
+window.revealIdea = function (id) {
+  localStorage.setItem(LS_REVEALED + id, '1');
+  localStorage.setItem(LS_INCOMPLETE, '1');
+  render();
+};
+window.completeLesson = function (id) {
+  var c = getCompleted();
+  if (c.indexOf(id) < 0) c.push(id);
+  localStorage.setItem(LS_COMPLETED, JSON.stringify(c));
+  localStorage.setItem(LS_INCOMPLETE, '0');
+  localStorage.removeItem(LS_REVEALED + id);
+  location.hash = '#learn';
+};
+window.savePractice = function (id) {
+  var el = document.getElementById('practiceInput');
+  var v = el ? el.value : '';
+  if (v) localStorage.setItem('coach_practice_' + id, v);
+  completeLesson(id);
+};
+
+function learnList() {
+  var c = getCompleted();
+  var h = '<div class="card"><h2>Learn — short lessons</h2><p>3 seed lessons. Each takes a few minutes. Mini-practice optional.</p>';
+  for (var i = 0; i < window.LESSONS.length; i++) {
+    var L = window.LESSONS[i];
+    var done = c.indexOf(L.id) >= 0 ? ' ✓' : '';
+    h += '<p><button class="btn secondary" onclick="openLesson(\'' + L.id + '\')">' + L.title + done + '</button></p>';
+  }
+  return h + '<p><a href="#home">Back home</a></p></div>';
+}
+function learnDetail(id) {
+  var L = getLesson(id);
+  if (!L) return learnList();
+  var revealed = localStorage.getItem(LS_REVEALED + id) === '1';
+  var h = '<div class="card"><h2>' + L.title + '</h2>';
+  h += '<p><b>1. Question:</b> ' + L.question + '</p>';
+  if (!revealed) {
+    h += '<button class="btn" onclick="revealIdea(\'' + L.id + '\')">Yes</button> <button class="btn secondary" onclick="revealIdea(\'' + L.id + '\')">Sometimes</button>';
+  } else {
+    h += '<p><b>2. Idea:</b> ' + L.concept + '</p>';
+    h += '<p><b>3. Explanation:</b> ' + L.explanation + '</p><p>' + L.before + '<br>' + L.after + '</p>';
+    h += '<p><b>4. Optional mini-practice:</b> ' + L.practicePrompt + '</p><p class="muted">' + L.practiceOptions.join(' · ') + '</p>';
+    h += '<p><input id="practiceInput" placeholder="Type one sentence (optional)" style="width:100%;padding:8px"></p>';
+    h += '<button class="btn" onclick="completeLesson(\'' + L.id + '\')">Mark complete (practice optional)</button> <button class="btn secondary" onclick="savePractice(\'' + L.id + '\')">Save practice + complete</button>';
+  }
+  return h + '<p><a href="#learn">All lessons</a></p></div>';
+}
+
 var routes = {
   welcome: function () {
     return '<div class="card"><h2>Welcome</h2><p>This app helps students and early-career pros handle difficult conversations with empathy. Short lessons, role-play practice, and bounded guidance for real situations.</p><button class="btn" onclick="location.hash=\'#checkin\'">Start check-in</button></div>';
@@ -59,8 +117,8 @@ var routes = {
       : '<p class="muted">No incomplete lesson — Continue hidden.</p>';
     return '<div class="card"><h2>Good to see you again. What would you like to work on today?</h2><p><b>Daily reflection (placeholder):</b> Someone misunderstood what you meant. What could you do before responding?</p>' + cont + '<p>Free choice: <a href="#learn">Learn</a> · <a href="#practice">Practice</a> · <a href="#reflect">Reflect</a> · <a href="#progress">Progress</a></p><p class="muted">Demo: incomplete=' + (hasIncomplete() ? '1' : '0') + ' <button class="btn secondary" onclick="toggleIncomplete()">Toggle incomplete</button> <button class="btn secondary" onclick="resetDemo()">Reset demo</button></p></div>';
   },
-  learn: function () {
-    return '<div class="card"><h2>Learn</h2><p>Short lessons placeholder (Phase 3).</p><p><a href="#home">Back home</a></p></div>';
+  learn: function (param) {
+    return param ? learnDetail(param) : learnList();
   },
   practice: function () {
     return '<div class="card"><h2>Practice</h2><p>Role-play placeholder (Phase 4).</p><p><a href="#home">Back home</a></p></div>';
@@ -74,9 +132,12 @@ var routes = {
 };
 
 function render() {
-  var hash = (location.hash || '#home').replace('#', '');
+  var raw = (location.hash || '#home').replace('#', '');
+  var parts = raw.split('/');
+  var hash = parts[0];
+  var param = parts[1] || '';
   if (!routes[hash]) hash = 'home';
-  document.getElementById('view').innerHTML = routes[hash]();
+  document.getElementById('view').innerHTML = routes[hash](param);
   var links = document.querySelectorAll('nav.tabs a');
   for (var i = 0; i < links.length; i++) {
     links[i].className = links[i].getAttribute('data-route') === hash ? 'active' : '';
