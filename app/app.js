@@ -66,6 +66,85 @@ window.savePractice = function (id) {
   completeLesson(id);
 };
 
+window.RP = { id: '', custom: '', msgs: [], ended: false };
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function getScenario(id) {
+  for (var i = 0; i < window.SCENARIOS.length; i++) {
+    if (window.SCENARIOS[i].id === id) return window.SCENARIOS[i];
+  }
+  return null;
+}
+window.openScenario = function (id) {
+  var s = getScenario(id);
+  if (!s) return;
+  window.RP = { id: id, custom: '', msgs: [{ who: 'them', text: s.opener }], ended: false };
+  location.hash = '#practice/' + id;
+};
+window.startCustom = function () {
+  var el = document.getElementById('customInput');
+  var v = el ? el.value.trim() : '';
+  if (!v) return;
+  window.RP = { id: 'custom', custom: v, msgs: [{ who: 'them', text: 'Got it — let us try this out. What would you say first about: ' + v }], ended: false };
+  location.hash = '#practice/custom';
+};
+window.sendRP = function () {
+  var el = document.getElementById('rpInput');
+  var v = el ? el.value.trim() : '';
+  if (!v || window.RP.ended) return;
+  window.RP.msgs.push({ who: 'you', text: v });
+  var reply = 'Thanks for sharing that. What outcome would you like here?';
+  if (v.indexOf('?') >= 0) reply = 'Good question — that keeps it curious. How would you state what you need next?';
+  else if (/sorry|thanks|understand/i.test(v)) reply = 'That lands with empathy. Can you add one clear request?';
+  window.RP.msgs.push({ who: 'them', text: reply });
+  render();
+};
+window.endRP = function () {
+  window.RP.ended = true;
+  var done = getCompleted();
+  render();
+};
+window.restartRP = function () {
+  var id = window.RP.id;
+  if (id === 'custom') { location.hash = '#practice'; return; }
+  openScenario(id);
+};
+function rpFeedback() {
+  var yours = [];
+  for (var i = 0; i < window.RP.msgs.length; i++) {
+    if (window.RP.msgs[i].who === 'you') yours.push(window.RP.msgs[i].text);
+  }
+  var text = yours.join(' ').toLowerCase();
+  var obs = [];
+  obs.push(text.indexOf('?') >= 0 ? 'Tone: you asked questions — keeps things curious.' : 'Tone: try one curious question before stating your view.');
+  obs.push(/sorry|thanks|understand|hear/i.test(text) ? 'Empathy: you acknowledged the other side.' : 'Empathy: name what they might feel in one line.');
+  obs.push(yours.length > 0 && yours.join(' ').length > 12 ? 'Clarity: you stated your view.' : 'Clarity: state one fact + one request.');
+  return '<div class="card"><h3>Feedback (observations, no scores)</h3><p>' + obs.join('<br>') + '</p><p class="muted">Alternatives: ask for clarification · explain impact · state what you need going forward.</p><button class="btn secondary" onclick="restartRP()">Restart</button> <button class="btn secondary" onclick="location.hash=\'#practice\'">Picker</button></div>';
+}
+function practicePicker() {
+  var h = '<div class="card"><h2>Practice — pick a scenario (simulated)</h2>';
+  for (var i = 0; i < window.SCENARIOS.length; i++) {
+    var s = window.SCENARIOS[i];
+    h += '<p><button class="btn secondary" onclick="openScenario(\'' + s.id + '\')">' + s.title + '</button></p>';
+  }
+  return h + '<p><b>Or describe your own:</b></p><p><input id="customInput" placeholder="e.g. Roommate left dishes…" style="width:100%;padding:8px"></p><p><button class="btn" onclick="startCustom()">Create scenario</button></p></div>';
+}
+function practiceChat(id) {
+  var s = id === 'custom' ? { title: 'Custom: ' + window.RP.custom } : getScenario(id);
+  if (!s || !window.RP.msgs.length) return practicePicker();
+  var h = '<div class="card"><h2>' + esc(s.title) + ' (simulated)</h2><p class="muted">Clearly labeled simulation. End/restart anytime.</p><div>';
+  for (var i = 0; i < window.RP.msgs.length; i++) {
+    var m = window.RP.msgs[i];
+    h += '<p><b>' + (m.who === 'you' ? 'You' : 'Partner') + ':</b> ' + esc(m.text) + '</p>';
+  }
+  h += '</div>';
+  if (!window.RP.ended) {
+    h += '<p><input id="rpInput" placeholder="Your reply…" style="width:100%;padding:8px"></p><p><button class="btn" onclick="sendRP()">Send</button> <button class="btn secondary" onclick="endRP()">End + feedback</button></p>';
+  } else {
+    h += rpFeedback();
+  }
+  return h + '</div>';
+}
+
 function learnList() {
   var c = getCompleted();
   var h = '<div class="card"><h2>Learn — short lessons</h2><p>3 seed lessons. Each takes a few minutes. Mini-practice optional.</p>';
@@ -120,8 +199,8 @@ var routes = {
   learn: function (param) {
     return param ? learnDetail(param) : learnList();
   },
-  practice: function () {
-    return '<div class="card"><h2>Practice</h2><p>Role-play placeholder (Phase 4).</p><p><a href="#home">Back home</a></p></div>';
+  practice: function (param) {
+    return param ? practiceChat(param) : practicePicker();
   },
   reflect: function () {
     return '<div class="card"><h2>Reflect</h2><p>Real-situation guidance placeholder (Phase 5).</p><p class="muted">Tone scaffold active, ' + window.COACH_SYSTEM.length + ' chars.</p></div>';
