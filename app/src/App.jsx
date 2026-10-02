@@ -2,6 +2,27 @@ import { useCallback, useEffect, useState } from 'react';
 import { COACH_SYSTEM } from '../ai/prompt.ts';
 import { LESSONS, SCENARIOS } from './data.js';
 import { LS, bump, buildGuidanceParts, getCompleted, getNum, rpFeedback, rpReply } from './store.js';
+import { SAFETY_MESSAGE, SUPPORT_RESOURCES, SAFETY_TESTS, assessSafety, runSafetyTests } from './lib/safety.ts';
+
+function SafetyCard({ onStartOver }) {
+  return (
+    <div className="safety">
+      <p><b>{SAFETY_MESSAGE}</b></p>
+      <p><b>Support resources (always visible):</b></p>
+      <ul>
+        {SUPPORT_RESOURCES.map((r) => (
+          <li key={r.label}><b>{r.label}:</b> {r.detail}</li>
+        ))}
+      </ul>
+      <p className="muted">Coaching on this topic is stopped. You can return whenever ready — nothing here will be brought up again.</p>
+      <p>
+        <button className="btn" onClick={() => { window.location.hash = '#home'; if (onStartOver) onStartOver(); }}>Back to Home</button>{' '}
+        <button className="btn secondary" onClick={() => { window.location.hash = '#learn'; if (onStartOver) onStartOver(); }}>Learn instead</button>{' '}
+        {onStartOver && <button className="btn secondary" onClick={onStartOver}>Start over</button>}
+      </p>
+    </div>
+  );
+}
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash || '#home');
@@ -33,6 +54,9 @@ export default function App() {
   const [rgResult, setRgResult] = useState(() => localStorage.getItem(LS.rgLast) || '');
   const [practiceInput, setPracticeInput] = useState('');
   const [remTime, setRemTime] = useState(() => localStorage.getItem(LS.remTime) || '09:00');
+  const [rgSafety, setRgSafety] = useState(null);
+  const [pickerSafety, setPickerSafety] = useState(null);
+  const [lessonSafety, setLessonSafety] = useState(null);
 
   const isOnboarded = localStorage.getItem(LS.onboarded) === '1';
   const hasIncomplete = localStorage.getItem(LS.incomplete) === '1';
@@ -67,6 +91,14 @@ export default function App() {
     rerender();
   };
   const completeLesson = (id, practice) => {
+    if (practice && practice.trim()) {
+      const a = assessSafety(practice);
+      if (a.level === 'high') {
+        setLessonSafety(a);
+        return;
+      }
+    }
+    setLessonSafety(null);
     const c = getCompleted();
     if (!c.includes(id)) c.push(id);
     localStorage.setItem(LS.completed, JSON.stringify(c));
@@ -80,12 +112,19 @@ export default function App() {
   const openScenario = (id) => {
     const s = SCENARIOS.find((x) => x.id === id);
     if (!s) return;
+    setPickerSafety(null);
     setRp({ id, custom: '', msgs: [{ who: 'them', text: s.opener }], ended: false });
     go('#practice/' + id);
   };
   const startCustom = () => {
     const v = customInput.trim();
     if (!v) return;
+    const a = assessSafety(v);
+    if (a.level === 'high') {
+      setPickerSafety(a);
+      return;
+    }
+    setPickerSafety(null);
     setRp({
       id: 'custom',
       custom: v,
@@ -97,6 +136,12 @@ export default function App() {
   const sendRP = () => {
     const v = rpInput.trim();
     if (!v || rp.ended) return;
+    const a = assessSafety(v);
+    if (a.level === 'high') {
+      setRp((p) => ({ ...p, ended: true, safety: a }));
+      setRpInput('');
+      return;
+    }
     setRp((p) => ({ ...p, msgs: [...p.msgs, { who: 'you', text: v }, { who: 'them', text: rpReply(v) }] }));
     setRpInput('');
   };
@@ -117,6 +162,13 @@ export default function App() {
   const getGuidance = () => {
     const v = rgInput.trim();
     if (!v) return;
+    const a = assessSafety(v);
+    if (a.level === 'high') {
+      setRgSafety(a);
+      setRgResult('');
+      return;
+    }
+    setRgSafety(a.level === 'concerning' ? a : null);
     localStorage.setItem(LS.rgLast, v);
     bump(LS.rgCount);
     setRgResult(v);
@@ -244,6 +296,9 @@ export default function App() {
                       <button className="btn secondary" onClick={() => { completeLesson(L.id, practiceInput); setPracticeInput(''); }}>Save practice + complete</button>
                     </>
                   )}
+                  {lessonSafety && lessonSafety.level === 'high' && (
+                    <SafetyCard onStartOver={() => setLessonSafety(null)} />
+                  )}
                   <p><a href="#learn">All lessons</a></p>
                 </>
               );
@@ -259,6 +314,9 @@ export default function App() {
             <p><b>Or describe your own:</b></p>
             <p><input value={customInput} onChange={(e) => setCustomInput(e.target.value)} placeholder="e.g. Roommate left dishes…" style={{ width: '100%', padding: 8 }} /></p>
             <p><button className="btn" onClick={startCustom}>Create scenario</button></p>
+            {pickerSafety && pickerSafety.level === 'high' && (
+              <SafetyCard onStartOver={() => { setPickerSafety(null); setCustomInput(''); }} />
+            )}
           </div>
         )}
         {route === 'practice' && param && (
@@ -268,7 +326,9 @@ export default function App() {
             {rp.msgs.map((m, i) => (
               <p key={i}><b>{m.who === 'you' ? 'You' : 'Partner'}:</b> {m.text}</p>
             ))}
-            {!rp.ended ? (
+            {rp.safety && rp.safety.level === 'high' ? (
+              <SafetyCard onStartOver={() => { setRp({ id: '', custom: '', msgs: [], ended: false }); setRpInput(''); go('#practice'); }} />
+            ) : !rp.ended ? (
               <>
                 <p><input value={rpInput} onChange={(e) => setRpInput(e.target.value)} placeholder="Your reply…" style={{ width: '100%', padding: 8 }} /></p>
                 <p><button className="btn" onClick={sendRP}>Send</button> <button className="btn secondary" onClick={endRP}>End + feedback</button></p>
@@ -289,23 +349,34 @@ export default function App() {
             <div className="card">
               <h2>Reflect — real situation guidance</h2>
               <p>Describe a disagreement. No interrogation — you get a 3-part response.</p>
-              <p><textarea value={rgInput} onChange={(e) => setRgInput(e.target.value)} placeholder="e.g. My teammate keeps interrupting me in meetings…" style={{ width: '100%', padding: 8 }} rows={3} /></p>
+              <p><textarea value={rgInput} onChange={(e) => { setRgInput(e.target.value); if (rgSafety) setRgSafety(null); }} placeholder="e.g. My teammate keeps interrupting me in meetings…" style={{ width: '100%', padding: 8 }} rows={3} /></p>
               <p><button className="btn" onClick={getGuidance}>Get guidance</button></p>
-              <p className="muted">Tone scaffold active, {COACH_SYSTEM.length} chars.</p>
+              <p className="muted">Tone scaffold active, {COACH_SYSTEM.length} chars. Safety gate active on every submission.</p>
             </div>
-            {rgResult && (
-              <div className="card">
-                {(() => {
-                  const g = buildGuidanceParts(rgResult);
-                  return (
-                    <>
-                      <p><b>1. Reflect back:</b> {g.reflect}</p>
-                      <p><b>2. Options:</b><br />• {g.options[0]}<br />• {g.options[1]}<br />• {g.options[2]}</p>
-                      <p className="muted"><b>3. Reminder:</b> {g.reminder}</p>
-                    </>
-                  );
-                })()}
-              </div>
+            {rgSafety && rgSafety.level === 'high' ? (
+              <SafetyCard onStartOver={() => { setRgSafety(null); setRgInput(''); setRgResult(''); }} />
+            ) : (
+              <>
+                {rgResult && (
+                  <div className="card">
+                    {(() => {
+                      const g = buildGuidanceParts(rgResult);
+                      return (
+                        <>
+                          <p><b>1. Reflect back:</b> {g.reflect}</p>
+                          <p><b>2. Options:</b><br />• {g.options[0]}<br />• {g.options[1]}<br />• {g.options[2]}</p>
+                          <p className="muted"><b>3. Reminder:</b> {g.reminder}</p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+                {rgSafety && rgSafety.level === 'concerning' && (
+                  <div className="card">
+                    <p className="muted">Note: this sounds tough — consider involving someone you trust alongside anything here.</p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -341,8 +412,27 @@ export default function App() {
             })()}
           </div>
         )}
+        {route === 'safety-test' && (
+          <div className="card">
+            <h2>Safety self-test</h2>
+            {(() => {
+              const r = runSafetyTests();
+              return (
+                <>
+                  <p><b>{r.passed}/{SAFETY_TESTS.length} passed</b>{r.failed > 0 && ` — ${r.failed} failed`}.</p>
+                  {r.failures.map((f, i) => <p key={i} style={{ color: '#B3261E' }}>{f}</p>)}
+                  <ul>
+                    {SAFETY_TESTS.map((t, i) => (
+                      <li key={i}><b>{assessSafety(t.input).level}</b> (expect {t.expect}) — {t.note}: “{t.input}”</li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
+          </div>
+        )}
       </main>
-      <footer className="muted">All AI output goes through <code>ai/prompt.ts</code> tone scaffold.</footer>
+      <footer className="muted">All AI output goes through <code>ai/prompt.ts</code> tone scaffold + <code>src/lib/safety.ts</code> gate. <a href="#safety-test">Safety self-test</a></footer>
     </div>
   );
 }
