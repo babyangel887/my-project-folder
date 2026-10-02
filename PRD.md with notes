@@ -111,6 +111,15 @@ Each phase was manually tested in the browser before moving to the next: navigat
 
 **What's next:** Phase 7 — Crisis & Safety Handling + hardening (the `lib/safety.ts` gate on all AI inputs, the warm redirect message + resource card on trigger, and the safety test suite), as defined in `IMPLEMENTATION_PLAN.md`. This is the final phase, after which the full implementation plan will be complete.
 
+## Progress Update (Final)
+**Phase reached:** All 7 phases of the implementation plan are now complete.
+
+Phase 7 (Crisis & Safety Handling) was implemented as the final phase: a safety gate (`lib/safety.ts`) checks all AI inputs across Lessons, Practice, and Reflect. On a genuine crisis trigger (danger, abuse, self-harm, suicidal language), the app stops normal coaching, shows a single warm message plus an always-visible resource card, and allows gentle re-entry to the rest of the app without re-surfacing the crisis unprompted. Ordinary difficult conversations (a disagreement, workplace feedback, a refund dispute) are correctly left alone and continue to receive normal guidance.
+
+An in-app self-test suite (`#safety-test`) verifies this behavior automatically: 13 out of 13 cases pass, confirming ordinary conflicts stay normal while danger/abuse/self-harm/suicidal language is correctly redirected.
+
+The full implementation plan — from the app skeleton through crisis handling — is complete and pushed to GitHub as a working Vite+React application.
+
 
 
 
