@@ -102,5 +102,15 @@ The app currently runs locally as static HTML/CSS/JS files (since Node.js/npm is
 
 **What's next:** Phase 2 — First-Time + Returning user flows (welcome screen, quick check-in, guided first action for new users; straight-to-home with no friction for returning users), as defined in `IMPLEMENTATION_PLAN.md`. Once Node.js is installed, this static skeleton can also be converted into a real Vite+React project (`package.json`, `src/`, `ai/prompt.ts`) without changing the structure already in place.
 
+## Progress Update (Revised)
+**Phase reached:** Phases 1 through 6 are now complete — App skeleton, First-Time/Returning flows, Short Lessons, Role-Play Practice, Real Situation Guidance, and Progress Tracking + Reminders.
+
+Since the last update, Node.js was installed on the development machine, and the app was converted from a static HTML/CSS/JS skeleton into a real Vite+React project (`package.json`, `src/`, `ai/prompt.ts`), matching the framework originally planned and documented in the Tool Decision note above. All functionality from the static version was ported over using the same localStorage keys, so no existing behavior was lost. The build was verified with `npm run build` (compiles cleanly, no errors), and the app runs locally via `npm run dev`. The old static files (`app/app.js`, `app/styles.css`, `app/content/lessons.js`, `app/content/scenarios.js`, `app/ai/prompt.js`) were removed since they are no longer used, while the lesson/scenario JSON content files were kept as planned deliverables.
+
+Each phase was manually tested in the browser before moving to the next: navigation and tone scaffold (Phase 1), first-time/returning flows including the conditional Continue button (Phase 2), the question-first lesson flow with optional mini-practice (Phase 3), the scenario picker/custom input and simulated chat with feedback (Phase 4), the 3-part real situation guidance response (Phase 5), and the gentle progress summary with disableable reminders (Phase 6).
+
+**What's next:** Phase 7 — Crisis & Safety Handling + hardening (the `lib/safety.ts` gate on all AI inputs, the warm redirect message + resource card on trigger, and the safety test suite), as defined in `IMPLEMENTATION_PLAN.md`. This is the final phase, after which the full implementation plan will be complete.
+
+
 
 
