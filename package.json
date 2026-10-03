@@ -4,6 +4,7 @@
   "description": "Simple web app to query Groq API",
   "main": "server.js",
   "scripts": {
+    "build": "npm install --prefix app && npm run build --prefix app",
     "start": "node server.js"
   },
   "dependencies": {
