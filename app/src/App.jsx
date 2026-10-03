@@ -3,6 +3,7 @@ import { COACH_SYSTEM } from '../ai/prompt.ts';
 import { LESSONS, SCENARIOS } from './data.js';
 import { LS, bump, buildGuidanceParts, getCompleted, getNum, rpFeedback, rpReply } from './store.js';
 import { SAFETY_MESSAGE, SUPPORT_RESOURCES, SAFETY_TESTS, assessSafety, runSafetyTests } from './lib/safety.ts';
+import { askCoach, rolePlayPrompt, guidancePrompt } from './lib/coach.js';
 
 function SafetyCard({ onStartOver }) {
   return (
@@ -57,6 +58,9 @@ export default function App() {
   const [rgSafety, setRgSafety] = useState(null);
   const [pickerSafety, setPickerSafety] = useState(null);
   const [lessonSafety, setLessonSafety] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [coachError, setCoachError] = useState('');
+  const [rgAi, setRgAi] = useState('');
 
   const isOnboarded = localStorage.getItem(LS.onboarded) === '1';
   const hasIncomplete = localStorage.getItem(LS.incomplete) === '1';
@@ -133,17 +137,37 @@ export default function App() {
     });
     go('#practice/custom');
   };
-  const sendRP = () => {
+  const sendRP = async () => {
     const v = rpInput.trim();
-    if (!v || rp.ended) return;
+    if (!v || rp.ended || busy) return;
     const a = assessSafety(v);
     if (a.level === 'high') {
       setRp((p) => ({ ...p, ended: true, safety: a }));
       setRpInput('');
       return;
     }
-    setRp((p) => ({ ...p, msgs: [...p.msgs, { who: 'you', text: v }, { who: 'them', text: rpReply(v) }] }));
+    const snap = rp.msgs;
+    setRp((p) => ({ ...p, msgs: [...p.msgs, { who: 'you', text: v }] }));
     setRpInput('');
+    setCoachError('');
+    setBusy(true);
+    try {
+      const s = rp.id === 'custom'
+        ? { title: 'Custom situation', context: rp.custom }
+        : (() => {
+            const f = SCENARIOS.find((x) => x.id === rp.id) || {};
+            return { title: f.title || rp.id, context: f.context || '' };
+          })();
+      const reply = await askCoach(
+        `${COACH_SYSTEM}\n\n${rolePlayPrompt({ scenarioTitle: s.title, scenarioContext: s.context, history: [...snap, { who: 'you', text: v }], userText: v })}`
+      );
+      setRp((p) => ({ ...p, msgs: [...p.msgs, { who: 'them', text: reply }] }));
+    } catch (e) {
+      setCoachError('Live coaching unavailable (' + e.message + ') — local fallback reply used.');
+      setRp((p) => ({ ...p, msgs: [...p.msgs, { who: 'them', text: rpReply(v) }] }));
+    } finally {
+      setBusy(false);
+    }
   };
   const endRP = () => {
     if (!rp.ended) bump(LS.rpCount);
@@ -159,19 +183,32 @@ export default function App() {
   };
 
   // --- reflect ---
-  const getGuidance = () => {
+  const getGuidance = async () => {
     const v = rgInput.trim();
-    if (!v) return;
+    if (!v || busy) return;
     const a = assessSafety(v);
     if (a.level === 'high') {
       setRgSafety(a);
       setRgResult('');
+      setRgAi('');
       return;
     }
     setRgSafety(a.level === 'concerning' ? a : null);
     localStorage.setItem(LS.rgLast, v);
     bump(LS.rgCount);
-    setRgResult(v);
+    setCoachError('');
+    setBusy(true);
+    try {
+      const reply = await askCoach(`${COACH_SYSTEM}\n\n${guidancePrompt(v)}`);
+      setRgAi(reply);
+      setRgResult('');
+    } catch (e) {
+      setCoachError('Live coaching unavailable (' + e.message + ') — local guidance used.');
+      setRgAi('');
+      setRgResult(v);
+    } finally {
+      setBusy(false);
+    }
   };
 
   // --- reminders ---
@@ -330,8 +367,10 @@ export default function App() {
               <SafetyCard onStartOver={() => { setRp({ id: '', custom: '', msgs: [], ended: false }); setRpInput(''); go('#practice'); }} />
             ) : !rp.ended ? (
               <>
-                <p><input value={rpInput} onChange={(e) => setRpInput(e.target.value)} placeholder="Your reply…" style={{ width: '100%', padding: 8 }} /></p>
-                <p><button className="btn" onClick={sendRP}>Send</button> <button className="btn secondary" onClick={endRP}>End + feedback</button></p>
+                <p><input value={rpInput} onChange={(e) => setRpInput(e.target.value)} placeholder="Your reply…" style={{ width: '100%', padding: 8 }} disabled={busy} /></p>
+                <p><button className="btn" onClick={sendRP} disabled={busy}>{busy ? 'Thinking…' : 'Send'}</button> <button className="btn secondary" onClick={endRP}>End + feedback</button></p>
+                {busy && <p className="muted">Waiting for live coaching…</p>}
+                {coachError && <p className="muted">{coachError}</p>}
               </>
             ) : (
               <div className="card">
@@ -349,14 +388,22 @@ export default function App() {
             <div className="card">
               <h2>Reflect — real situation guidance</h2>
               <p>Describe a disagreement. No interrogation — you get a 3-part response.</p>
-              <p><textarea value={rgInput} onChange={(e) => { setRgInput(e.target.value); if (rgSafety) setRgSafety(null); }} placeholder="e.g. My teammate keeps interrupting me in meetings…" style={{ width: '100%', padding: 8 }} rows={3} /></p>
-              <p><button className="btn" onClick={getGuidance}>Get guidance</button></p>
+              <p><textarea value={rgInput} onChange={(e) => { setRgInput(e.target.value); if (rgSafety) setRgSafety(null); }} placeholder="e.g. My teammate keeps interrupting me in meetings…" style={{ width: '100%', padding: 8 }} rows={3} disabled={busy} /></p>
+              <p><button className="btn" onClick={getGuidance} disabled={busy}>{busy ? 'Thinking…' : 'Get guidance'}</button></p>
+              {busy && <p className="muted">Waiting for live coaching…</p>}
+              {coachError && <p className="muted">{coachError}</p>}
               <p className="muted">Tone scaffold active, {COACH_SYSTEM.length} chars. Safety gate active on every submission.</p>
             </div>
             {rgSafety && rgSafety.level === 'high' ? (
-              <SafetyCard onStartOver={() => { setRgSafety(null); setRgInput(''); setRgResult(''); }} />
+              <SafetyCard onStartOver={() => { setRgSafety(null); setRgInput(''); setRgResult(''); setRgAi(''); }} />
             ) : (
               <>
+                {rgAi && (
+                  <div className="card">
+                    <p><b>Live coaching:</b></p>
+                    <p style={{ whiteSpace: 'pre-wrap' }}>{rgAi}</p>
+                  </div>
+                )}
                 {rgResult && (
                   <div className="card">
                     {(() => {
