@@ -3,12 +3,16 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-// Render (like most hosts) sits behind a proxy that forwards the real
-// client IP in X-Forwarded-For. Without this, req.ip would be the proxy's
-// own IP for every visitor and the limiter below would throttle all users
-// as one. Trust exactly one hop so req.ip is the client IP the proxy
-// reports — clients can't spoof it to dodge the limit.
-app.set("trust proxy", 1);
+// Traffic now arrives via TWO proxies: browser -> Netlify -> Render ->
+// Express, each appending to X-Forwarded-For. The chain looks like
+// [spoof?, real-client, netlify-egress], so the visitor is the
+// SECOND-from-last entry — the IP Netlify itself saw. Trust exactly two
+// hops: forged entries further left are never reached, so clients can't
+// spoof their way to fresh quota. (With only one trusted hop, every
+// Netlify visitor would resolve to the same egress IP and share one
+// bucket.) Direct hits with fewer than 2 entries fall back to the TCP
+// peer in visitorKey() below.
+app.set("trust proxy", 2);
 app.use(express.json({ limit: "10kb" }));
 
 // Basic in-memory rate limit for the AI endpoint so strangers can't
@@ -16,9 +20,20 @@ app.use(express.json({ limit: "10kb" }));
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_HITS = 20;
 const hits = new Map();
+function visitorKey(req) {
+  const xff = String(req.headers["x-forwarded-for"] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (xff.length >= 2) return "netlify:" + xff[xff.length - 2];
+  // No Netlify hop (direct hit): a lone X-Forwarded-For value could be
+  // forged, so key on the TCP peer instead. Direct traffic shares a
+  // stricter bucket, which is fine — the frontend always comes via Netlify.
+  return "direct:" + (req.socket.remoteAddress || "unknown");
+}
 function askLimiter(req, res, next) {
   const now = Date.now();
-  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  const ip = visitorKey(req);
   const arr = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
   if (arr.length >= MAX_HITS) {
     res.set("Retry-After", String(Math.ceil(WINDOW_MS / 1000)));

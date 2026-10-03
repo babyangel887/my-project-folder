@@ -1,0 +1,12 @@
+# Netlify serves the Vite frontend; the Express/Groq API stays on Render.
+[build]
+  base = "app"
+  command = "npm run build"
+  publish = "dist"
+
+# Same-origin /ask for the app, proxied to Render (method + body preserved).
+[[redirects]]
+  from = "/ask"
+  to = "https://my-project-folder-oit0.onrender.com/ask"
+  status = 200
+  force = true
